@@ -6,7 +6,8 @@ from django.contrib.auth.decorators import login_required
 from django.contrib.auth import login
 from django.contrib.auth.forms import UserCreationForm
 from .models import Shelf
-
+import requests
+from django.http import JsonResponse
 
 
 @login_required
@@ -132,7 +133,68 @@ def shelf_list_create(request):
                 error = "同じ名前の棚はすでにあります"
 
     shelves = Shelf.objects.filter(user=request.user)
-    return render(request, "sinnsa/shelves.html", {
-        "shelves": shelves,
-        "error": error,
-    })
+    return render(
+        request,
+        "sinnsa/shelves.html",
+        {
+            "shelves": shelves,
+            "error": error,
+        },
+    )
+
+
+@login_required
+def isbn_lookup(request):
+    isbn = (request.GET.get("isbn") or "").strip().replace("-", "")
+    if not isbn:
+        return JsonResponse({"ok": False, "error": "ISBNが空です"})
+
+    url = f"https://api.openbd.jp/v1/get?isbn={isbn}"
+    r = requests.get(url, timeout=10)
+    data = r.json()
+
+    # OpenBDは配列で返る。見つからないと [None]
+    if not data or data[0] is None:
+        return JsonResponse({"ok": False, "error": "見つかりませんでした"})
+
+    item = data[0]
+
+    # タイトルなどの取り出し（無い場合もあるので安全に）
+    title = (
+        item.get("summary", {}).get("title")
+        or item.get("onix", {})
+        .get("DescriptiveDetail", {})
+        .get("TitleDetail", {})
+        .get("TitleElement", {})
+        .get("TitleText", {})
+        .get("content")
+        or ""
+    )
+    author = item.get("summary", {}).get("author", "") or ""
+    publisher = item.get("summary", {}).get("publisher", "") or ""
+
+    cover_url = ""
+    # summary.cover が入ることが多い
+    cover_url = item.get("summary", {}).get("cover", "") or ""
+    # ダメなら onix 側から拾う
+    if not cover_url:
+        resources = (
+            item.get("onix", {})
+            .get("CollateralDetail", {})
+            .get("SupportingResource", [])
+        )
+        if resources:
+            rv = resources[0].get("ResourceVersion", [])
+            if rv:
+                cover_url = rv[0].get("ResourceLink", "") or ""
+
+    return JsonResponse(
+        {
+            "ok": True,
+            "isbn": isbn,
+            "title": title,
+            "author": author,
+            "publisher": publisher,
+            "cover_url": cover_url,
+        }
+    )
