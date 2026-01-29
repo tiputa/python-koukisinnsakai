@@ -1,0 +1,40 @@
+version: 1.0
+runtime: python311
+build:
+  commands:
+    pre-build:
+      - dnf install -y gcc mariadb105-devel openssl-devel pkgconf-pkg-config
+    build:
+      - python3 -m pip install --upgrade pip
+      - python3 -m pip install -r requirements.txt --target ./vendor
+      - PYTHONPATH=./vendor python3 manage.py collectstatic --noinput
+run:
+  env:
+    - name: DB_NAME
+      value: "python-2025-2500473" # 自分のDBに変更する
+    - name: ALLOWED_HOSTS
+      value: .ap-northeast-1.awsapprunner.com
+    - name: CSRF_TRUSTED_ORIGINS
+      value: https://*.ap-northeast-1.awsapprunner.com
+    - name: ENABLE_BASIC_AUTH
+      value: "true"
+    - name: BASIC_AUTH_USERNAME
+      value: "admin"
+    - name: BASIC_AUTH_PASSWORD
+      value: "python-2025"
+  secrets:
+    - name: DB_HOST
+      value-from: "arn:aws:secretsmanager:ap-northeast-1:897722665268:secret:prod/python-2025/mysql-ZpTVYM:host::"
+    - name: DB_PORT
+      value-from: "arn:aws:secretsmanager:ap-northeast-1:897722665268:secret:prod/python-2025/mysql-ZpTVYM:port::"
+    - name: DB_USER
+      value-from: "arn:aws:secretsmanager:ap-northeast-1:897722665268:secret:prod/python-2025/mysql-ZpTVYM:username::"
+    - name: DB_PASSWORD
+      value-from: "arn:aws:secretsmanager:ap-northeast-1:897722665268:secret:prod/python-2025/mysql-ZpTVYM:password::"
+    - name: OPENAI_API_KEY
+      value-from: "arn:aws:secretsmanager:ap-northeast-1:897722665268:secret:prod/python-2025/openai-4QYLIA:apikey::"
+  pre-run:
+    - dnf install -y mariadb105-devel
+  command: sh entrypoint.sh
+  network:
+    port: 8000
