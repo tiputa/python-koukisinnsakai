@@ -23,26 +23,42 @@
     <hr>
 
     {% for ub in user_books %}
-    <div style="margin-bottom:20px;">
-        <h3>
+<div style="display:flex; gap:12px; align-items:flex-start; margin-bottom:20px;">
+
+    <!-- 表紙 -->
+    <div>
+        {% if ub.book.cover_url %}
+            <img src="{{ ub.book.cover_url }}" width="90" alt="cover">
+        {% else %}
+            <div style="width:90px; height:130px; border:1px solid #ccc;
+                        display:flex; align-items:center; justify-content:center; font-size:12px;">
+                No Image
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- 本情報 -->
+    <div>
+        <h3 style="margin:0;">
             <a href="{% url 'userbook_edit' ub.id %}">{{ ub.book.title }}</a>
         </h3>
 
-        <!-- 棚表示（None対策） -->
-        <p>
+        {% if ub.book.author %}
+        <p style="margin:6px 0 0;">著者：{{ ub.book.author }}</p>
+        {% endif %}
+
+        <p style="margin:6px 0 0;">
             棚：
             {% if ub.shelf %}
-            {{ ub.shelf.name }}
+                {{ ub.shelf.name }}
             {% else %}
-            未分類
+                未分類
             {% endif %}
         </p>
-
-        {% if ub.book.cover_url %}
-        <img src="{{ ub.book.cover_url }}" width="100">
-        {% endif %}
     </div>
-    {% empty %}
+
+</div>
+{% empty %}
     <p>まだ本が登録されていません。</p>
     {% endfor %}
 </body>

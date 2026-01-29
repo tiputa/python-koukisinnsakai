@@ -8,7 +8,7 @@ from .models import Shelf
 import requests
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
-
+import re
 
 
 @login_required
@@ -146,60 +146,101 @@ def shelf_list_create(request):
 
 @login_required
 def isbn_lookup(request):
-    isbn = (request.GET.get("isbn") or "").strip().replace("-", "")
+    # ★カッコ/スペース/ハイフン混ざってもOKにする
+    raw = (request.GET.get("isbn") or "").strip()
+    isbn = re.sub(r"[^0-9]", "", raw)
+
     if not isbn:
         return JsonResponse({"ok": False, "error": "ISBNが空です"})
 
-    url = f"https://api.openbd.jp/v1/get?isbn={isbn}"
-    r = requests.get(url, timeout=10)
-    data = r.json()
+    title = ""
+    author = ""
+    publisher = ""
+    cover_url = ""
 
-    # OpenBDは配列で返る。見つからないと [None]
-    if not data or data[0] is None:
+    # ========= 1) OpenBD =========
+    try:
+        url = f"https://api.openbd.jp/v1/get?isbn={isbn}"
+        r = requests.get(url, timeout=10)
+        data = r.json()
+
+        # 見つからないと [None]
+        if data and data[0] is not None:
+            item = data[0]
+
+            title = (
+                item.get("summary", {}).get("title")
+                or item.get("onix", {})
+                .get("DescriptiveDetail", {})
+                .get("TitleDetail", {})
+                .get("TitleElement", {})
+                .get("TitleText", {})
+                .get("content")
+                or ""
+            )
+            author = item.get("summary", {}).get("author", "") or ""
+            publisher = item.get("summary", {}).get("publisher", "") or ""
+
+            # summary.cover が入ることが多い
+            cover_url = item.get("summary", {}).get("cover", "") or ""
+
+            # ダメなら onix 側から拾う（※複数ある場合があるので一応ループ）
+            if not cover_url:
+                resources = (
+                    item.get("onix", {})
+                    .get("CollateralDetail", {})
+                    .get("SupportingResource", [])
+                )
+                for res in resources:
+                    rv = res.get("ResourceVersion", [])
+                    if rv:
+                        link = rv[0].get("ResourceLink", "") or ""
+                        if link:
+                            cover_url = link
+                            break
+    except Exception:
+        pass
+
+    # ========= 2) Google Books fallback（表紙が無い時） =========
+    if not cover_url:
+        try:
+            g_url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
+            gr = requests.get(g_url, timeout=10)
+            gdata = gr.json()
+            items = gdata.get("items") or []
+            if items:
+                vi = (items[0].get("volumeInfo") or {})
+
+                # OpenBDで空だったものも埋める（あるなら上書きしない）
+                if not title:
+                    title = vi.get("title", "") or ""
+                if not author:
+                    authors = vi.get("authors") or []
+                    author = " / ".join(authors) if authors else ""
+                if not publisher:
+                    publisher = vi.get("publisher", "") or ""
+
+                links = vi.get("imageLinks") or {}
+                cover_url = links.get("thumbnail") or links.get("smallThumbnail") or ""
+
+                # http のときがあるので https に寄せる（任意）
+                if cover_url.startswith("http://"):
+                    cover_url = "https://" + cover_url[len("http://"):]
+        except Exception:
+            pass
+
+    # 何も取れなかったら見つからない扱い
+    if not title and not author and not publisher and not cover_url:
         return JsonResponse({"ok": False, "error": "見つかりませんでした"})
 
-    item = data[0]
-
-    # タイトルなどの取り出し（無い場合もあるので安全に）
-    title = (
-        item.get("summary", {}).get("title")
-        or item.get("onix", {})
-        .get("DescriptiveDetail", {})
-        .get("TitleDetail", {})
-        .get("TitleElement", {})
-        .get("TitleText", {})
-        .get("content")
-        or ""
-    )
-    author = item.get("summary", {}).get("author", "") or ""
-    publisher = item.get("summary", {}).get("publisher", "") or ""
-
-    cover_url = ""
-    # summary.cover が入ることが多い
-    cover_url = item.get("summary", {}).get("cover", "") or ""
-    # ダメなら onix 側から拾う
-    if not cover_url:
-        resources = (
-            item.get("onix", {})
-            .get("CollateralDetail", {})
-            .get("SupportingResource", [])
-        )
-        if resources:
-            rv = resources[0].get("ResourceVersion", [])
-            if rv:
-                cover_url = rv[0].get("ResourceLink", "") or ""
-
-    return JsonResponse(
-        {
-            "ok": True,
-            "isbn": isbn,
-            "title": title,
-            "author": author,
-            "publisher": publisher,
-            "cover_url": cover_url,
-        }
-    )
-
+    return JsonResponse({
+        "ok": True,
+        "isbn": isbn,
+        "title": title,
+        "author": author,
+        "publisher": publisher,
+        "cover_url": cover_url,
+    })
 
 @login_required
 def userbook_edit(request, pk):

@@ -142,7 +142,7 @@ function onDetected(result) {
 
 // ===== ISBN検索処理 =====
 fetchBtn.addEventListener("click", async () => {
-    const isbn = isbnInput.value.trim().replaceAll("-", "");
+    const isbn = isbnInput.value.trim().replace(/[^0-9]/g, "");
     if (!isbn) {
         fetchStatus.textContent = "ISBNを入力してください";
         return;
