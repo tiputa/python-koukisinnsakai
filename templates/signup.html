@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>新規登録</title>
+</head>
+<body>
+  <h1>新規登録</h1>
+
+  {% if form.errors %}
+    <div style="color:red;">
+      {{ form.errors }}
+    </div>
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+
+    <p>
+      ユーザー名<br>
+      {{ form.username }}
+    </p>
+
+    <p>
+      パスワード<br>
+      {{ form.password1 }}
+    </p>
+
+    <p>
+      パスワード（確認）<br>
+      {{ form.password2 }}
+    </p>
+
+    <button type="submit">登録してログイン</button>
+  </form>
+
+  <p><a href="{% url 'login' %}">ログインへ</a></p>
+</body>
+</html>

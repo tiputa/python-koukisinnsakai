@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>本棚管理</title>
+</head>
+<body>
+  <h1>本棚管理</h1>
+
+  <p><a href="{% url 'book_list' %}">← 本一覧へ</a></p>
+
+  {% if error %}
+    <p style="color:red;">{{ error }}</p>
+  {% endif %}
+
+  <h2>棚を追加</h2>
+  <form method="post">
+    {% csrf_token %}
+    <input type="text" name="name" placeholder="例：漫画、参考書、読みたい">
+    <button type="submit">追加</button>
+  </form>
+
+  <h2>あなたの棚</h2>
+  <ul>
+    {% for s in shelves %}
+      <li>{{ s.name }}</li>
+    {% empty %}
+      <li>まだ棚がありません</li>
+    {% endfor %}
+  </ul>
+</body>
+</html>

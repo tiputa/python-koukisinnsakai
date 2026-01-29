@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>本一覧</title>
+</head>
+
+<body>
+    <h1>本一覧</h1>
+    <p><a href="{% url 'book_add' %}">＋ 本を登録</a></p>
+    <p><a href="{% url 'shelf_list_create' %}">本棚を管理</a></p>
+    <form method="post" action="{% url 'logout' %}">
+        {% csrf_token %}
+        <button type="submit">ログアウト</button>
+    </form>
+
+    <!-- 検索フォーム -->
+    <form method="get">
+        <input type="text" name="q" value="{{ q }}" placeholder="本の名前で検索">
+        <button type="submit">検索</button>
+    </form>
+
+    <hr>
+
+    {% for ub in user_books %}
+    <div style="margin-bottom:20px;">
+        <h3>{{ ub.book.title }}</h3>
+
+        <!-- 棚表示（None対策） -->
+        <p>
+            棚：
+            {% if ub.shelf %}
+            {{ ub.shelf.name }}
+            {% else %}
+            未分類
+            {% endif %}
+        </p>
+
+        {% if ub.book.cover_url %}
+        <img src="{{ ub.book.cover_url }}" width="100">
+        {% endif %}
+    </div>
+    {% empty %}
+    <p>まだ本が登録されていません。</p>
+    {% endfor %}
+</body>
+
+</html>
