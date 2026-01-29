@@ -24,7 +24,9 @@
 
     {% for ub in user_books %}
     <div style="margin-bottom:20px;">
-        <h3>{{ ub.book.title }}</h3>
+        <h3>
+            <a href="{% url 'userbook_edit' ub.id %}">{{ ub.book.title }}</a>
+        </h3>
 
         <!-- 棚表示（None対策） -->
         <p>

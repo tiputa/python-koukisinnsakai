@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>本の編集</title>
+</head>
+
+<body>
+    <h1>本の編集</h1>
+
+    <h2>{{ ub.book.title }}</h2>
+
+    {% if error %}
+    <p style="color:red;">{{ error }}</p>
+    {% endif %}
+
+    <form method="post">
+        {% csrf_token %}
+
+        <p>棚<br>
+            <select name="shelf">
+                <option value="">未分類</option>
+                {% for s in shelves %}
+                <option value="{{ s.id }}" {% if ub.shelf_id == s.id %}selected{% endif %}></option>
+                    {{ s.name }}
+                </option>
+                {% endfor %}
+            </select>
+        </p>
+
+        <p>メモ<br>
+            <textarea name="memo" rows="4" cols="40">{{ ub.memo }}</textarea>
+        </p>
+
+        <button type="submit">更新</button>
+    </form>
+    <p>
+        <a href="{% url 'userbook_delete' ub.id %}">この本を削除</a>
+    </p>
+    <p><a href="{% url 'book_list' %}">一覧へ戻る</a></p>
+</body>
+
+</html>

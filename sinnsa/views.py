@@ -1,5 +1,4 @@
 from .models import UserBook
-from django.shortcuts import render, redirect
 from django.db import IntegrityError
 from .models import Book, Shelf, UserBook
 from django.contrib.auth.decorators import login_required
@@ -8,6 +7,8 @@ from django.contrib.auth.forms import UserCreationForm
 from .models import Shelf
 import requests
 from django.http import JsonResponse
+from django.shortcuts import render, redirect, get_object_or_404
+
 
 
 @login_required
@@ -198,3 +199,47 @@ def isbn_lookup(request):
             "cover_url": cover_url,
         }
     )
+
+
+@login_required
+def userbook_edit(request, pk):
+    ub = get_object_or_404(UserBook, pk=pk, user=request.user)
+    shelves = Shelf.objects.filter(user=request.user).order_by("name")
+    error = ""
+
+    if request.method == "POST":
+        shelf_id = request.POST.get("shelf") or ""
+        memo = (request.POST.get("memo") or "").strip()
+
+        # 棚は任意
+        shelf = None
+        if shelf_id:
+            shelf = Shelf.objects.filter(id=shelf_id, user=request.user).first()
+            if shelf is None:
+                error = "その棚は選べません"
+        if not error:
+            ub.shelf = shelf
+            ub.memo = memo
+            ub.save()
+            return redirect("book_list")
+
+    return render(
+        request,
+        "sinnsa/userbook_edit.html",
+        {
+            "ub": ub,
+            "shelves": shelves,
+            "error": error,
+        },
+    )
+
+
+@login_required
+def userbook_delete(request, pk):
+    ub = get_object_or_404(UserBook, pk=pk, user=request.user)
+
+    if request.method == "POST":
+        ub.delete()
+        return redirect("book_list")
+
+    return render(request, "sinnsa/userbook_confirm_delete.html", {"ub": ub})
