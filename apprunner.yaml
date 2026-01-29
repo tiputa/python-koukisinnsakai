@@ -11,7 +11,7 @@ build:
 run:
   env:
     - name: DB_NAME
-      value: "python-2025-2500473" # 自分のDBに変更する
+      value: "python_2025_2500473" # 自分のDBに変更する
     - name: ALLOWED_HOSTS
       value: .ap-northeast-1.awsapprunner.com
     - name: CSRF_TRUSTED_ORIGINS
