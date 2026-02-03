@@ -161,7 +161,7 @@ def isbn_lookup(request):
     # ========= 1) OpenBD =========
     try:
         url = f"https://api.openbd.jp/v1/get?isbn={isbn}"
-        r = requests.get(url, timeout=(2, 3))
+        r = requests.get(url, timeout=(10, 3))
         data = r.json()
 
         # 見つからないと [None]
@@ -202,33 +202,33 @@ def isbn_lookup(request):
         pass
 
     # ========= 2) Google Books fallback（表紙が無い時） =========
-    # if not cover_url:
-    #     try:
-    #         g_url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
-    #         gr = requests.get(g_url, timeout=(2, 3))
-    #         gr.raise_for_status()
-    #         gdata = gr.json()
-    #         items = gdata.get("items") or []
-            # if items:
-            #     vi = items[0].get("volumeInfo") or {}
+     if not cover_url:
+         try:
+             g_url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
+             gr = requests.get(g_url, timeout=(10, 3))
+             gr.raise_for_status()
+             gdata = gr.json()
+             items = gdata.get("items") or []
+             if items:
+                 vi = items[0].get("volumeInfo") or {}
 
-            #     # OpenBDで空だったものも埋める（あるなら上書きしない）
-            #     if not title:
-            #         title = vi.get("title", "") or ""
-            #     if not author:
-            #         authors = vi.get("authors") or []
-            #         author = " / ".join(authors) if authors else ""
-            #     if not publisher:
-            #         publisher = vi.get("publisher", "") or ""
+                 # OpenBDで空だったものも埋める（あるなら上書きしない）
+                 if not title:
+                     title = vi.get("title", "") or ""
+                 if not author:
+                     authors = vi.get("authors") or []
+                     author = " / ".join(authors) if authors else ""
+                 if not publisher:
+                     publisher = vi.get("publisher", "") or ""
 
-            #     links = vi.get("imageLinks") or {}
-            #     cover_url = links.get("thumbnail") or links.get("smallThumbnail") or ""
+                 links = vi.get("imageLinks") or {}
+                 cover_url = links.get("thumbnail") or links.get("smallThumbnail") or ""
 
-            #     # http のときがあるので https に寄せる（任意）
-        #         if cover_url.startswith("http://"):
-        #             cover_url = "https://" + cover_url[len("http://") :]
-        # except requests.RequestException:
-        #     pass
+                 # http のときがあるので https に寄せる（任意）
+                 if cover_url.startswith("http://"):
+                     cover_url = "https://" + cover_url[len("http://") :]
+         except requests.RequestException:
+             pass
 
     # 何も取れなかったら見つからない扱い
     if not title and not author and not publisher and not cover_url:
