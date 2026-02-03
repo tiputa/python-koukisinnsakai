@@ -205,11 +205,12 @@ def isbn_lookup(request):
     if not cover_url:
         try:
             g_url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
-            gr = requests.get(g_url, timeout=10)
+            gr = requests.get(g_url, timeout=2)
+            gr.raise_for_status()
             gdata = gr.json()
             items = gdata.get("items") or []
             if items:
-                vi = (items[0].get("volumeInfo") or {})
+                vi = items[0].get("volumeInfo") or {}
 
                 # OpenBDで空だったものも埋める（あるなら上書きしない）
                 if not title:
@@ -225,22 +226,25 @@ def isbn_lookup(request):
 
                 # http のときがあるので https に寄せる（任意）
                 if cover_url.startswith("http://"):
-                    cover_url = "https://" + cover_url[len("http://"):]
-        except Exception:
+                    cover_url = "https://" + cover_url[len("http://") :]
+        except requests.RequestException:
             pass
 
     # 何も取れなかったら見つからない扱い
     if not title and not author and not publisher and not cover_url:
         return JsonResponse({"ok": False, "error": "見つかりませんでした"})
 
-    return JsonResponse({
-        "ok": True,
-        "isbn": isbn,
-        "title": title,
-        "author": author,
-        "publisher": publisher,
-        "cover_url": cover_url,
-    })
+    return JsonResponse(
+        {
+            "ok": True,
+            "isbn": isbn,
+            "title": title,
+            "author": author,
+            "publisher": publisher,
+            "cover_url": cover_url,
+        }
+    )
+
 
 @login_required
 def userbook_edit(request, pk):

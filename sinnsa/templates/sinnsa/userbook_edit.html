@@ -22,7 +22,7 @@
                 <option value="">未分類</option>
 
                 {% for s in shelves %}
-                <option value="{{ s.id }}" {% if ub.shelf and ub.shelf.id==s.id %}selected{% endif %}>
+                <option value="{{ s.id }}" {% if ub.shelf and ub.shelf.id == s.id %}selected{% endif %}>
                     {{ s.name }}
                 </option>
                 {% endfor %}
