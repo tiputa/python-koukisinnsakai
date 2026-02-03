@@ -20,8 +20,9 @@
         <p>棚<br>
             <select name="shelf">
                 <option value="">未分類</option>
+
                 {% for s in shelves %}
-                <option value="{{ s.id }}" {% if ub.shelf_id == s.id %}selected{% endif %}></option>
+                <option value="{{ s.id }}" {% if ub.shelf and ub.shelf.id==s.id %}selected{% endif %}>
                     {{ s.name }}
                 </option>
                 {% endfor %}
