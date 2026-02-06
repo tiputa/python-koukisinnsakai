@@ -146,7 +146,6 @@ def shelf_list_create(request):
 
 @login_required
 def isbn_lookup(request):
-    # ★カッコ/スペース/ハイフン混ざってもOKにする
     raw = (request.GET.get("isbn") or "").strip()
     isbn = re.sub(r"[^0-9]", "", raw)
 
@@ -161,7 +160,8 @@ def isbn_lookup(request):
     # ========= 1) OpenBD =========
     try:
         url = f"https://api.openbd.jp/v1/get?isbn={isbn}"
-        r = requests.get(url, timeout=(10, 3))
+        r = requests.get(url, timeout=5)
+        r.raise_for_status()
         data = r.json()
 
         # 見つからないと [None]
@@ -181,10 +181,10 @@ def isbn_lookup(request):
             author = item.get("summary", {}).get("author", "") or ""
             publisher = item.get("summary", {}).get("publisher", "") or ""
 
-            # summary.cover が入ることが多い
+            # 1) summary.cover
             cover_url = item.get("summary", {}).get("cover", "") or ""
 
-            # ダメなら onix 側から拾う（※複数ある場合があるので一応ループ）
+            # 2) onix 側も探す（summary.cover が空のISBNがある）
             if not cover_url:
                 resources = (
                     item.get("onix", {})
@@ -198,37 +198,44 @@ def isbn_lookup(request):
                         if link:
                             cover_url = link
                             break
+
+    except requests.RequestException:
+        # OpenBD自体の通信失敗
+        pass
     except Exception:
         pass
 
-    # ========= 2) Google Books fallback（表紙が無い時） =========
-     if not cover_url:
-         try:
-             g_url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
-             gr = requests.get(g_url, timeout=(10, 3))
-             gr.raise_for_status()
-             gdata = gr.json()
-             items = gdata.get("items") or []
-             if items:
-                 vi = items[0].get("volumeInfo") or {}
+    # ========= 2) Google Books fallback（表紙が無い時だけ） =========
+    if not cover_url:
+        try:
+            g_url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
+            gr = requests.get(g_url, timeout=2)
+            gr.raise_for_status()
+            gdata = gr.json()
 
-                 # OpenBDで空だったものも埋める（あるなら上書きしない）
-                 if not title:
-                     title = vi.get("title", "") or ""
-                 if not author:
-                     authors = vi.get("authors") or []
-                     author = " / ".join(authors) if authors else ""
-                 if not publisher:
-                     publisher = vi.get("publisher", "") or ""
+            items = gdata.get("items") or []
+            if items:
+                vi = items[0].get("volumeInfo") or {}
 
-                 links = vi.get("imageLinks") or {}
-                 cover_url = links.get("thumbnail") or links.get("smallThumbnail") or ""
+                # OpenBDが空なら補完（上書きしない）
+                if not title:
+                    title = vi.get("title", "") or ""
+                if not author:
+                    authors = vi.get("authors") or []
+                    author = " / ".join(authors) if authors else ""
+                if not publisher:
+                    publisher = vi.get("publisher", "") or ""
 
-                 # http のときがあるので https に寄せる（任意）
-                 if cover_url.startswith("http://"):
-                     cover_url = "https://" + cover_url[len("http://") :]
-         except requests.RequestException:
-             pass
+                links = vi.get("imageLinks") or {}
+                cover_url = links.get("thumbnail") or links.get("smallThumbnail") or ""
+
+                if cover_url.startswith("http://"):
+                    cover_url = "https://" + cover_url[len("http://") :]
+
+        except requests.RequestException:
+            pass
+        except Exception:
+            pass
 
     # 何も取れなかったら見つからない扱い
     if not title and not author and not publisher and not cover_url:
@@ -244,6 +251,50 @@ def isbn_lookup(request):
             "cover_url": cover_url,
         }
     )
+
+    # ========= 2) Google Books fallback（表紙が無い時） =========
+    #  if not cover_url:
+    #      try:
+    #          g_url = f"https://www.googleapis.com/books/v1/volumes?q=isbn:{isbn}"
+    #          gr = requests.get(g_url, timeout=(10, 3))
+    #          gr.raise_for_status()
+    #          gdata = gr.json()
+    #          items = gdata.get("items") or []
+    #          if items:
+    #              vi = items[0].get("volumeInfo") or {}
+
+    #              # OpenBDで空だったものも埋める（あるなら上書きしない）
+    #              if not title:
+    #                  title = vi.get("title", "") or ""
+    #              if not author:
+    #                  authors = vi.get("authors") or []
+    #                  author = " / ".join(authors) if authors else ""
+    #              if not publisher:
+    #                  publisher = vi.get("publisher", "") or ""
+
+    #              links = vi.get("imageLinks") or {}
+    #              cover_url = links.get("thumbnail") or links.get("smallThumbnail") or ""
+
+    #              # http のときがあるので https に寄せる（任意）
+    #              if cover_url.startswith("http://"):
+    #                  cover_url = "https://" + cover_url[len("http://") :]
+    #      except requests.RequestException:
+    #          pass
+
+    # # 何も取れなかったら見つからない扱い
+    # if not title and not author and not publisher and not cover_url:
+    #     return JsonResponse({"ok": False, "error": "見つかりませんでした"})
+
+    # return JsonResponse(
+    #     {
+    #         "ok": True,
+    #         "isbn": isbn,
+    #         "title": title,
+    #         "author": author,
+    #         "publisher": publisher,
+    #         "cover_url": cover_url,
+    #     }
+    # )
 
 
 @login_required
