@@ -113,19 +113,21 @@
             return (code || "").replace(/[^0-9]/g, "");
         }
 
-        // ===== 表紙プレビュー（共通関数）=====
         function setCoverPreview(url) {
             const img = document.getElementById("cover-preview-img");
             const text = document.getElementById("cover-preview-text");
 
-            if (url && url.trim() !== "") {
-                img.src = url;
-                img.style.display = "block";
+            const u = (url || "").trim();
+
+            if (u) {
                 text.style.display = "none";
+                img.style.display = "block";
+                img.src = u;
             } else {
-                img.src = "";
                 img.style.display = "none";
+                img.removeAttribute("src");
                 text.style.display = "block";
+                text.textContent = "まだ画像がありません";
             }
         }
 
