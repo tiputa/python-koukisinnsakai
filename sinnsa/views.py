@@ -9,7 +9,7 @@ import requests
 from django.http import JsonResponse
 from django.shortcuts import render, redirect, get_object_or_404
 import re
-
+from django.http import HttpResponse
 
 @login_required
 def book_list(request):
@@ -339,3 +339,7 @@ def userbook_delete(request, pk):
         return redirect("book_list")
 
     return render(request, "sinnsa/userbook_confirm_delete.html", {"ub": ub})
+
+
+def healthz(request):
+    return HttpResponse("ok")
