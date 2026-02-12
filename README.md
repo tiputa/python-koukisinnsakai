@@ -1,7 +1,7 @@
 # python-koukisinnsakai
 
-
-# python manage.py runserver
+python manage.py runserver
+# 
 
 
 

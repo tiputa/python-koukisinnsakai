@@ -1,15 +1,17 @@
 from django.db import models
 from django.contrib.auth.models import User
 
+
 class Book(models.Model):
     isbn = models.CharField(max_length=13, unique=True)
     title = models.CharField(max_length=255)
     author = models.CharField(max_length=255, blank=True)
     publisher = models.CharField(max_length=255, blank=True)
-    cover_url = models.URLField(blank=True)
+    cover_url = models.URLField(blank=True, max_length=1000)  # ←ここ増やす
 
     def __str__(self):
         return f"{self.title} ({self.isbn})"
+
 
 class Shelf(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
@@ -20,6 +22,7 @@ class Shelf(models.Model):
 
     def __str__(self):
         return self.name
+
 
 class UserBook(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)

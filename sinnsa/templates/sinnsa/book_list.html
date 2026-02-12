@@ -1,66 +1,28 @@
-<!DOCTYPE html>
-<html>
+{% extends "sinnsa/base.html" %}
 
-<head>
-    <title>本一覧</title>
-</head>
+{% block content %}
 
-<body>
-    <h1>本一覧</h1>
-    <p><a href="{% url 'book_add' %}">＋ 本を登録</a></p>
-    <p><a href="{% url 'shelf_list_create' %}">本棚を管理</a></p>
-    <form method="post" action="{% url 'logout' %}">
-        {% csrf_token %}
-        <button type="submit">ログアウト</button>
-    </form>
+<header class="top">
+  <h1 class="page-title">本一覧</h1>
 
-    <!-- 検索フォーム -->
-    <form method="get">
-        <input type="text" name="q" value="{{ q }}" placeholder="本の名前で検索">
-        <button type="submit">検索</button>
-    </form>
+  <form method="get" class="search">
+    <input type="text" name="q" value="{{ q }}" placeholder="タイトルで検索">
+    <button type="submit">検索</button>
+  </form>
+</header>
 
-    <hr>
+<section class="grid">
+  {% for ub in user_books %}
+    <a class="cover" href="{% url 'userbook_edit' ub.pk %}" title="{{ ub.book.title }}">
+      {% if ub.book.cover_url %}
+        <img src="{{ ub.book.cover_url }}" alt="{{ ub.book.title }}">
+      {% else %}
+        <div class="no-cover">NO<br>IMAGE</div>
+      {% endif %}
+    </a>
+  {% empty %}
+    <p class="empty">まだ本が登録されていません。</p>
+  {% endfor %}
+</section>
 
-    {% for ub in user_books %}
-<div style="display:flex; gap:12px; align-items:flex-start; margin-bottom:20px;">
-
-    <!-- 表紙 -->
-    <div>
-        {% if ub.book.cover_url %}
-            <img src="{{ ub.book.cover_url }}" width="90" alt="cover">
-        {% else %}
-            <div style="width:90px; height:130px; border:1px solid #ccc;
-                        display:flex; align-items:center; justify-content:center; font-size:12px;">
-                No Image
-            </div>
-        {% endif %}
-    </div>
-
-    <!-- 本情報 -->
-    <div>
-        <h3 style="margin:0;">
-            <a href="{% url 'userbook_edit' ub.id %}">{{ ub.book.title }}</a>
-        </h3>
-
-        {% if ub.book.author %}
-        <p style="margin:6px 0 0;">著者：{{ ub.book.author }}</p>
-        {% endif %}
-
-        <p style="margin:6px 0 0;">
-            棚：
-            {% if ub.shelf %}
-                {{ ub.shelf.name }}
-            {% else %}
-                未分類
-            {% endif %}
-        </p>
-    </div>
-
-</div>
-{% empty %}
-    <p>まだ本が登録されていません。</p>
-    {% endfor %}
-</body>
-
-</html>
+{% endblock %}

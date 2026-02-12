@@ -1,15 +1,17 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <title>削除確認</title>
 </head>
+
 <body>
   <h1>削除確認</h1>
 
   <p>この本を本棚から削除しますか？</p>
   <p><strong>{{ ub.book.title }}</strong></p>
 
-  <form method="post">
+  <form method="post" action="{% url 'userbook_delete' ub.id %}">
     {% csrf_token %}
     <button type="submit">削除する</button>
   </form>
@@ -17,4 +19,5 @@
   <p><a href="{% url 'userbook_edit' ub.id %}">戻る</a></p>
   <p><a href="{% url 'book_list' %}">一覧へ戻る</a></p>
 </body>
+
 </html>

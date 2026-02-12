@@ -1,44 +1,67 @@
-<!DOCTYPE html>
-<html>
+{% extends "sinnsa/base.html" %}
+{% load static %}
 
-<head>
-    <title>本の編集</title>
-</head>
+{% block title %}本の編集{% endblock %}
 
-<body>
-    <h1>本の編集</h1>
+{% block content %}
+<div class="page">
+  <h1 class="page-title">本の編集</h1>
 
-    <h2>{{ ub.book.title }}</h2>
+  <div class="edit-card">
+    <div class="edit-head">
+      <div class="edit-cover">
+        {% if ub.book.cover_url %}
+          <img src="{{ ub.book.cover_url }}" alt="{{ ub.book.title }}">
+        {% else %}
+          <div class="no-cover">No Image</div>
+        {% endif %}
+      </div>
+
+      <div class="edit-meta">
+        <div class="edit-title">{{ ub.book.title }}</div>
+        {% if ub.book.author %}<div class="edit-sub">著者：{{ ub.book.author }}</div>{% endif %}
+        {% if ub.book.publisher %}<div class="edit-sub">出版社：{{ ub.book.publisher }}</div>{% endif %}
+        {% if ub.book.isbn %}<div class="edit-sub">ISBN：{{ ub.book.isbn }}</div>{% endif %}
+      </div>
+    </div>
 
     {% if error %}
-    <p style="color:red;">{{ error }}</p>
+      <p class="error">{{ error }}</p>
     {% endif %}
 
-    <form method="post">
-        {% csrf_token %}
+    <!-- ✅ 保存フォーム -->
+    <form method="post" class="edit-form">
+      {% csrf_token %}
 
-        <p>棚<br>
-            <select name="shelf">
-                <option value="">未分類</option>
+      <label class="field">
+        <span class="label">棚</span>
+        <select name="shelf">
+          <option value="">未分類</option>
+          {% for s in shelves %}
+            <option value="{{ s.id }}" {% if ub.shelf and ub.shelf.id == s.id %}selected{% endif %}>
+              {{ s.name }}
+            </option>
+          {% endfor %}
+        </select>
+      </label>
 
-                {% for s in shelves %}
-                <option value="{{ s.id }}" {% if ub.shelf and ub.shelf.id == s.id %}selected{% endif %}>
-                    {{ s.name }}
-                </option>
-                {% endfor %}
-            </select>
-        </p>
+      <label class="field">
+        <span class="label">メモ</span>
+        <textarea name="memo" rows="5" placeholder="感想 / 次読む巻 / メモなど">{{ ub.memo }}</textarea>
+      </label>
 
-        <p>メモ<br>
-            <textarea name="memo" rows="4" cols="40">{{ ub.memo }}</textarea>
-        </p>
-
-        <button type="submit">更新</button>
+      <div class="edit-actions">
+        <button type="submit" class="btn primary">保存</button>
+        <a class="btn ghost" href="{% url 'book_list' %}">戻る</a>
+      </div>
     </form>
-    <p>
-        <a href="{% url 'userbook_delete' ub.id %}">この本を削除</a>
-    </p>
-    <p><a href="{% url 'book_list' %}">一覧へ戻る</a></p>
-</body>
 
-</html>
+    <!-- ✅ 削除フォーム（外に出す！） -->
+    <form method="post" action="{% url 'userbook_delete' ub.id %}" class="delete-form">
+      {% csrf_token %}
+      <button type="submit" class="btn danger" onclick="return confirm('削除しますか？')">削除</button>
+    </form>
+
+  </div>
+</div>
+{% endblock %}

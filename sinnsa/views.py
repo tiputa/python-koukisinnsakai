@@ -343,3 +343,39 @@ def userbook_delete(request, pk):
 
 def healthz(request):
     return HttpResponse("ok")
+
+@login_required
+def shelf_books(request, shelf_id):
+    # 自分の棚だけ見れる
+    shelf = get_object_or_404(Shelf, id=shelf_id, user=request.user)
+
+    user_books = (
+        UserBook.objects
+        .filter(user=request.user, shelf=shelf)
+        .select_related("book", "shelf")
+        .order_by("-id")
+    )
+
+    return render(request, "sinnsa/shelf_books.html", {
+        "shelf": shelf,
+        "user_books": user_books,
+    })
+
+
+
+
+
+
+@login_required
+def shelf_uncategorized(request):
+    user_books = (
+        UserBook.objects
+        .filter(user=request.user, shelf__isnull=True)
+        .select_related("book", "shelf")
+        .order_by("-id")
+    )
+
+    return render(request, "sinnsa/shelf_books.html", {
+        "shelf": None,   # 未分類扱い
+        "user_books": user_books,
+    })

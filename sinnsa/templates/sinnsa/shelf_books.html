@@ -1,0 +1,23 @@
+{% extends "sinnsa/base.html" %}
+{% block title %}{{ shelf.name }}{% endblock %}
+
+{% block content %}
+<div class="top">
+    <h1 class="page-title">{{ shelf.name }}</h1>
+    <p><a href="{% url 'shelf_list_create' %}">← 本棚へ戻る</a></p>
+</div>
+
+<div class="grid">
+    {% for ub in user_books %}
+    <a class="cover" href="{% url 'userbook_edit' ub.id %}">
+        {% if ub.book.cover_url %}
+        <img src="{{ ub.book.cover_url }}" alt="{{ ub.book.title }}">
+        {% else %}
+        <div class="no-cover">NO IMAGE</div>
+        {% endif %}
+    </a>
+    {% empty %}
+    <p class="empty">この棚にはまだ本がありません。</p>
+    {% endfor %}
+</div>
+{% endblock %}

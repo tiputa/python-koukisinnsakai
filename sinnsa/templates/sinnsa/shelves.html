@@ -1,31 +1,46 @@
-<!DOCTYPE html>
-<html>
-<head>
-  <title>本棚管理</title>
-</head>
-<body>
-  <h1>本棚管理</h1>
+{% extends "sinnsa/base.html" %}
+{% block title %}本棚管理{% endblock %}
 
-  <p><a href="{% url 'book_list' %}">← 本一覧へ</a></p>
+{% block content %}
+<div class="shelves-page">
+  <h1 class="page-title">本棚管理</h1>
+
+  <p class="back-link"><a href="{% url 'book_list' %}">← 本一覧へ</a></p>
 
   {% if error %}
-    <p style="color:red;">{{ error }}</p>
+    <p class="error">{{ error }}</p>
   {% endif %}
 
-  <h2>棚を追加</h2>
-  <form method="post">
-    {% csrf_token %}
-    <input type="text" name="name" placeholder="例：漫画、参考書、読みたい">
-    <button type="submit">追加</button>
-  </form>
+  <section class="shelf-add">
+    <h2 class="section-title">棚を追加</h2>
+    <form method="post" class="shelf-add-form">
+      {% csrf_token %}
+      <input type="text" name="name" placeholder="例：漫画、参考書、読みたい">
+      <button type="submit">追加</button>
+    </form>
+  </section>
 
-  <h2>あなたの棚</h2>
-  <ul>
-    {% for s in shelves %}
-      <li>{{ s.name }}</li>
-    {% empty %}
-      <li>まだ棚がありません</li>
-    {% endfor %}
-  </ul>
-</body>
-</html>
+  <section class="shelf-list">
+    <h2 class="section-title">あなたの棚</h2>
+
+    <div class="shelf-cards">
+
+      <!-- 未分類もカードで表示 -->
+      <a class="shelf-card" href="{% url 'shelf_uncategorized' %}">
+        <div class="shelf-card__title">未分類</div>
+        <div class="shelf-card__sub">棚に入っていない本</div>
+      </a>
+
+      {% for s in shelves %}
+        <a class="shelf-card" href="{% url 'shelf_books' s.id %}">
+          <div class="shelf-card__title">{{ s.name }}</div>
+          <div class="shelf-card__sub">タップして本を表示</div>
+        </a>
+      {% empty %}
+        <p class="empty">まだ棚がありません</p>
+      {% endfor %}
+
+    </div>
+  </section>
+</div>
+{% endblock %}

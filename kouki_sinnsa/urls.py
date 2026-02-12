@@ -25,6 +25,6 @@ urlpatterns = [
     path("login/", auth_views.LoginView.as_view(template_name="login.html"), name="login"),
     path("logout/", auth_views.LogoutView.as_view(), name="logout"),
     path("signup/", sinnsa_views.signup, name="signup"),  # 追加
-    path("healthz/", sinnsa_views.healthz), name="healthz"),  # 追加
+    path("healthz/", sinnsa_views.healthz, name="healthz"),  # 追加
 
 ]

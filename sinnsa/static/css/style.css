@@ -1,0 +1,445 @@
+:root {
+    --bg: #f4f6fb;
+    --card: #ffffff;
+    --text: #222;
+    --muted: #666;
+    --primary: #4f46e5;
+    --border: #ddd;
+    --shadow: 0 6px 18px rgba(0, 0, 0, .08);
+    --bottom-nav-h: 72px;
+}
+
+/* ===== Base ===== */
+* {
+    box-sizing: border-box;
+}
+
+body {
+    font-family: "Noto Sans JP", system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    margin: 0;
+    padding-bottom: var(--bottom-nav-h);
+    /* fixed下ナビ分 */
+}
+
+/* base.html の main */
+.main {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 16px 16px calc(var(--bottom-nav-h) + 16px);
+    /* 下ナビ被り防止 */
+}
+
+/* 共通 */
+.page-title {
+    font-size: 20px;
+    margin: 8px 0 16px;
+}
+
+.error {
+    color: #c00;
+}
+
+/* ===== 下ナビ ===== */
+.bottom-nav {
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    height: var(--bottom-nav-h);
+    background: var(--card);
+    border-top: 1px solid var(--border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    z-index: 9999;
+}
+
+.bottom-nav a {
+    flex: 1;
+    text-align: center;
+    text-decoration: none;
+    color: #333;
+    font-weight: 700;
+    padding: 12px 8px;
+}
+
+/* ===== Buttons ===== */
+button {
+    background: var(--primary);
+    color: #fff;
+    border: none;
+    padding: 10px 14px;
+    border-radius: 10px;
+    cursor: pointer;
+}
+
+/* ===== 本一覧（表紙だけ grid） ===== */
+.top {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 14px;
+}
+
+.search {
+    display: flex;
+    gap: 8px;
+}
+
+.search input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+}
+
+.search button {
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    background: #fff;
+    color: #333;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+}
+
+@media (min-width:480px) {
+    .grid {
+        grid-template-columns: repeat(4, 1fr);
+    }
+}
+
+@media (min-width:900px) {
+    .grid {
+        grid-template-columns: repeat(6, 1fr);
+    }
+}
+
+.cover {
+    display: block;
+    border-radius: 14px;
+    overflow: hidden;
+    background: #f3f3f3;
+    aspect-ratio: 2/3;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .08);
+}
+
+.cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.no-cover {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    color: #777;
+    font-weight: 700;
+    font-size: 12px;
+    letter-spacing: .08em;
+    text-align: center;
+}
+
+.empty {
+    color: var(--muted);
+    margin: 20px 0 0;
+}
+
+/* ===== 本登録（左右レイアウト） ===== */
+.add-wrap {
+    max-width: 1100px;
+    margin: 0 auto;
+}
+
+.add-layout {
+    display: grid;
+    grid-template-columns: 1fr 300px;
+    /* 左：可変 / 右：固定 */
+    gap: 24px;
+    align-items: start;
+}
+
+/* 左フォーム：中央寄せ */
+.form-col {
+    max-width: 560px;
+    width: 100%;
+    margin-inline: auto;
+}
+
+.form-col input,
+.form-col select,
+.form-col textarea {
+    width: 100%;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 10px;
+    font-size: 14px;
+    background: #fff;
+}
+
+.form-col textarea {
+    resize: vertical;
+}
+
+/* scanner */
+.scanner-box {
+    width: 100%;
+    height: 260px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    background: #fff;
+    overflow: hidden;
+    margin: 10px 0 16px;
+}
+
+/* 右プレビュー：右固定 */
+.cover-col {
+    position: sticky;
+    top: 16px;
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px;
+    background: var(--card);
+    height: fit-content;
+}
+
+.cover-preview-box {
+    width: 100%;
+    height: 360px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    display: grid;
+    place-items: center;
+    overflow: hidden;
+    background: #fafafa;
+}
+
+#cover-preview-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: none;
+    /* JSで表示切替 */
+}
+
+.hint {
+    font-size: 12px;
+    color: var(--muted);
+    margin: 8px 0 0;
+}
+
+.back-link {
+    margin-top: 16px;
+}
+
+/* スマホ：1カラム（プレビューは下へ） */
+@media (max-width: 900px) {
+    .add-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .cover-col {
+        position: static;
+    }
+}
+
+/* ===== Shelves (cards) ===== */
+.shelf-cards {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+}
+
+@media (min-width: 720px) {
+    .shelf-cards {
+        grid-template-columns: repeat(3, 1fr);
+    }
+}
+
+.shelf-card {
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 14px;
+    padding: 14px;
+    text-decoration: none;
+    color: inherit;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .06);
+    display: block;
+}
+
+.shelf-card:hover {
+    transform: translateY(-1px);
+}
+
+.shelf-card__title {
+    font-weight: 800;
+    margin-bottom: 6px;
+}
+
+.shelf-card__sub {
+    font-size: 12px;
+    color: #666;
+}
+
+/* ===== 編集画面 ===== */
+.page {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.edit-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 16px;
+    box-shadow: 0 6px 18px rgba(0, 0, 0, .08);
+}
+
+.edit-head {
+    display: grid;
+    grid-template-columns: 110px 1fr;
+    gap: 14px;
+    align-items: start;
+    margin-bottom: 14px;
+}
+
+.edit-cover {
+    width: 110px;
+    aspect-ratio: 2/3;
+    border-radius: 12px;
+    overflow: hidden;
+    background: #f3f3f3;
+    box-shadow: 0 6px 16px rgba(0, 0, 0, .08);
+}
+
+.edit-cover img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.edit-cover .no-cover {
+    width: 100%;
+    height: 100%;
+    display: grid;
+    place-items: center;
+    color: #777;
+    font-weight: 700;
+    font-size: 12px;
+}
+
+.edit-title {
+    font-weight: 800;
+    font-size: 16px;
+    line-height: 1.3;
+}
+
+.edit-sub {
+    margin-top: 6px;
+    color: #555;
+    font-size: 13px;
+}
+
+.edit-form {
+    display: grid;
+    gap: 14px;
+}
+
+.field {
+    display: grid;
+    gap: 8px;
+}
+
+.label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #333;
+}
+
+.field input,
+.field select,
+.field textarea {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 1px solid #ccc;
+    border-radius: 12px;
+    background: #fff;
+    font-size: 14px;
+}
+
+.edit-actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-top: 6px;
+}
+
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 10px 14px;
+    border-radius: 12px;
+    text-decoration: none;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #111;
+    font-weight: 800;
+    cursor: pointer;
+}
+
+.btn.primary {
+    border: none;
+    background: #4f46e5;
+    color: #fff;
+}
+
+.btn.ghost {
+    background: #fff;
+}
+
+.btn.danger {
+    border: none;
+    background: #ef4444;
+    color: #fff;
+}
+
+.inline {
+    display: inline;
+}
+
+@media (max-width: 480px) {
+    .edit-head {
+        grid-template-columns: 90px 1fr;
+    }
+
+    .edit-cover {
+        width: 90px;
+    }
+}
+
+/* 編集ページ中央寄せ */
+.page {
+    max-width: 600px;
+    margin: 0 auto;
+    text-align: left;
+}
+
+.page {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px 16px;
+}

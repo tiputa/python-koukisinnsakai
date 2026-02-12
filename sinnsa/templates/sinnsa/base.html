@@ -1,0 +1,24 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}本棚{% endblock %}</title>
+  <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+  <main class="main">
+    {% block content %}{% endblock %}
+  </main>
+
+  <!-- 下ナビ -->
+  <nav class="bottom-nav">
+    <a href="{% url 'book_list' %}">ホーム</a>
+    <a href="{% url 'book_add' %}">新規登録</a>
+    <a href="{% url 'shelf_list_create' %}">本棚</a>
+  </nav>
+
+</body>
+</html>
